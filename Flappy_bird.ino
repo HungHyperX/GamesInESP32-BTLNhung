@@ -3,8 +3,10 @@
 
 #include "asset.h"
 
+#define MY_LED          5
 #define BUTTON_PIN      23
-#define BOOT_BUTTON_PIN 0
+#define BUTTON_PIN_1    34
+#define BOOT_BUTTON_PIN 0 // Nút BOOT
 #define BUZZER_PIN      18
 
 #define SCREEN_WIDTH    128
@@ -38,8 +40,18 @@ float speed = 0.01;
 
 unsigned long keyPressTime = 0;
 
+
+bool btn;
+
 void setup() {
-  pinMode(BUTTON_PIN, INPUT_PULLUP); 
+  // Chế độ hoạt động của chân Pin nối với Led:  Output
+  pinMode(MY_LED, OUTPUT);
+  
+  // Chế độ hoạt động của chân Pin nối với nút bấm:  Input với điện trở kêo lên có sẵn trong MCU
+  // Khi nhả: mạch điện ở phía nút bấm hở, nhưng điện trở kéo lên bên trong sẽ bảo đám mạch điện vẫn kín, và kéo về logic 1
+  // Khi bấm: mạch điện ở phía nút bấm thông, tạo điện áp 0V tương ứng với logic 0
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(BUTTON_PIN_1, INPUT_PULLUP); 
   pinMode(BUZZER_PIN, OUTPUT);
 
   preferences.begin("Flappy", false);
@@ -61,6 +73,11 @@ void setup() {
 }
 
 void loop() {
+
+  btn = digitalRead(BUTTON_PIN_1);
+  // Hiển thị led tương ứng
+  digitalWrite(MY_LED, btn);
+
   display.clear();
 
   // Display start screen
