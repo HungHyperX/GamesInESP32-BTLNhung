@@ -2,6 +2,7 @@
 #include <Preferences.h>
 
 #include "asset.h"
+#include "pitch.h"
 
 #define MY_LED          5
 #define BUTTON_PIN      23
@@ -40,8 +41,19 @@ float speed = 0.01;
 
 unsigned long keyPressTime = 0;
 
-
+// trạng thái nút bấm
 bool btn;
+
+// danh sách các nốt nhạc
+int melody[] = {
+  NOTE_C4, NOTE_G3,NOTE_G3, NOTE_A3, NOTE_G3,0, NOTE_B3, NOTE_C4};
+
+// thời gina các nốt nhạc: 4 = 1/4 nốt nhạc, 8 = 1/8nốt nhạc, ...:
+int noteDurations[] = {
+  4, 8, 8, 4, 4, 4, 4, 4};
+
+int brightness = 0;    // mặc định độ sáng của đèn là 
+int fadeAmount = 5;    // mỗi lần thay đổi độ sáng thì thay đổi với giá trị là bao nhiêu
 
 void setup() {
   // Chế độ hoạt động của chân Pin nối với Led:  Output
@@ -51,7 +63,7 @@ void setup() {
   // Khi nhả: mạch điện ở phía nút bấm hở, nhưng điện trở kéo lên bên trong sẽ bảo đám mạch điện vẫn kín, và kéo về logic 1
   // Khi bấm: mạch điện ở phía nút bấm thông, tạo điện áp 0V tương ứng với logic 0
   pinMode(BUTTON_PIN, INPUT_PULLUP);
-  pinMode(BUTTON_PIN_1, INPUT_PULLUP); 
+  pinMode(BUTTON_PIN_1, INPUT); 
   pinMode(BUZZER_PIN, OUTPUT);
 
   preferences.begin("Flappy", false);
@@ -61,6 +73,34 @@ void setup() {
   preferences.end();
 
   display.init();
+  
+  // Phát còi khi khởi động
+  // digitalWrite(BUZZER_PIN,1);
+  // delay(200);
+  // digitalWrite(BUZZER_PIN,0);
+
+  
+  
+  for (int thisNote = 0; thisNote < 8; thisNote++) {
+
+    // bây giờ ta đặt một nốt nhạc là 1 giây = 1000 mili giây
+    // thì ta chia cho các thành phần noteDurations thì sẽ
+    // được thời gian chơi các nốt nhạc
+    // ví dụ: 4 => 1000/4; 8 ==> 1000/8 
+    int noteDuration = 1000/noteDurations[thisNote];
+    tone(BUZZER_PIN, melody[thisNote],noteDuration);
+
+    // để phân biệt các nốt nhạc hãy delay giữa các nốt nhạc
+    // một khoảng thời gian vừa phải. Ví dụ sau đây thực hiện tốt
+    // điều đó: Ta sẽ cộng 30% và thời lượng của một nốt
+    int pauseBetweenNotes = noteDuration * 1.30;
+    delay(pauseBetweenNotes);
+    
+    //Ngừng phát nhạc để sau đó chơi nhạc tiếp!
+    noTone(BUZZER_PIN);
+  }
+
+  digitalWrite(MY_LED, LOW);
 
   // Initialize tubes on the right outside of the screen
   for(int i = 0; i < 4; i++) {
@@ -73,12 +113,29 @@ void setup() {
 }
 
 void loop() {
-
-  btn = digitalRead(BUTTON_PIN_1);
-  // Hiển thị led tương ứng
-  digitalWrite(MY_LED, btn);
-
+  
   display.clear();
+
+  int btn = digitalRead(BUTTON_PIN_1);
+  // Hiển thị led tương ứng
+  if (btn == HIGH)
+    digitalWrite(MY_LED, HIGH);
+  else{
+    digitalWrite(MY_LED, LOW);
+  }
+
+  // //xuất giá trị độ sáng đèn LED
+  // analogWrite(MY_LED, brightness);    
+ 
+  // // thay đổi giá trị là đèn LED
+  // brightness = brightness + fadeAmount;
+ 
+  // // Đoạn code này có nghĩa nếu độ sáng == 0 hoặc bằng == 255 thì sẽ đổi chiều của biến thay đổi độ sáng. Ví dụ, nếu đèn từ sáng yếu --> sáng mạnh thì fadeAmount dương. Còn nếu đèn sáng mạnh --> sáng yếu thì fadeAmmount lúc này sẽ có giá trị âm
+  // if (brightness == 0 || brightness == 255) {
+  //   fadeAmount = -fadeAmount ;
+  // }    
+  // //đợi 30 mili giây để thấy sự thay đổi của đèn
+  // //delay(30);                            
 
   // Display start screen
   if(gameState == 0) {  
@@ -113,6 +170,7 @@ void loop() {
 
   //Display in-game screen
   else if (gameState == 1) {  
+
     //Display score
     display.setFont(ArialMT_Plain_10);
     display.drawString(3, 0, String(score));
@@ -143,7 +201,7 @@ void loop() {
         hasScored[i] = true;
 
         // Increase speed every 10 tubes
-        if(score % 10 == 0){
+        if(score % 5 == 0){
           speed += 0.01;
         }
       }
