@@ -297,6 +297,7 @@ void loop() {
             preferences.end();
           }
 
+          isMusicOn = false;
           gameState = 2;
 
           delay(50);
@@ -340,7 +341,6 @@ void loop() {
       preferences.putUInt("highScore", highScore);
       preferences.end();
 
-      isMusicOn = false;
     }
   }
   
