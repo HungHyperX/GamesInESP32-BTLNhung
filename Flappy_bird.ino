@@ -34,6 +34,7 @@ bool isFlyingUp = false;
 bool isBuzzerOn = false;
 bool increaseSpeed = false;
 bool hasScored[4];
+bool isMusicOn = false;
 
 float birdX = 20.00;
 float birdY = 28.00;
@@ -55,32 +56,7 @@ int noteDurations[] = {
 int brightness = 0;    // mặc định độ sáng của đèn là 
 int fadeAmount = 5;    // mỗi lần thay đổi độ sáng thì thay đổi với giá trị là bao nhiêu
 
-void setup() {
-  // Chế độ hoạt động của chân Pin nối với Led:  Output
-  pinMode(MY_LED, OUTPUT);
-  
-  // Chế độ hoạt động của chân Pin nối với nút bấm:  Input với điện trở kêo lên có sẵn trong MCU
-  // Khi nhả: mạch điện ở phía nút bấm hở, nhưng điện trở kéo lên bên trong sẽ bảo đám mạch điện vẫn kín, và kéo về logic 1
-  // Khi bấm: mạch điện ở phía nút bấm thông, tạo điện áp 0V tương ứng với logic 0
-  pinMode(BUTTON_PIN, INPUT_PULLUP);
-  pinMode(BUTTON_PIN_1, INPUT); 
-  pinMode(BUZZER_PIN, OUTPUT);
-
-  preferences.begin("Flappy", false);
-  // Get the high score, if the key does not exist, return a default value of 0
-  highScore = preferences.getUInt("highScore", 0);
-  // Close the Preferences
-  preferences.end();
-
-  display.init();
-  
-  // Phát còi khi khởi động
-  // digitalWrite(BUZZER_PIN,1);
-  // delay(200);
-  // digitalWrite(BUZZER_PIN,0);
-
-  
-  
+void shortMusic(){
   for (int thisNote = 0; thisNote < 8; thisNote++) {
 
     // bây giờ ta đặt một nốt nhạc là 1 giây = 1000 mili giây
@@ -99,8 +75,37 @@ void setup() {
     //Ngừng phát nhạc để sau đó chơi nhạc tiếp!
     noTone(BUZZER_PIN);
   }
+}
 
-  digitalWrite(MY_LED, LOW);
+void setup() {
+  // Chế độ hoạt động của chân Pin nối với Led:  Output
+  pinMode(MY_LED, OUTPUT);
+  
+  // Chế độ hoạt động của chân Pin nối với nút bấm:  Input với điện trở kêo lên có sẵn trong MCU
+  // Khi nhả: mạch điện ở phía nút bấm hở, nhưng điện trở kéo lên bên trong sẽ bảo đám mạch điện vẫn kín, và kéo về logic 1
+  // Khi bấm: mạch điện ở phía nút bấm thông, tạo điện áp 0V tương ứng với logic 0
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(BUTTON_PIN_1, INPUT); 
+  pinMode(BUZZER_PIN, OUTPUT);
+
+  shortMusic();
+
+  preferences.begin("Flappy", false);
+  // Get the high score, if the key does not exist, return a default value of 0
+  highScore = preferences.getUInt("highScore", 0);
+  // Close the Preferences
+  preferences.end();
+
+  display.init();
+  
+  // Phát còi khi khởi động
+  // digitalWrite(BUZZER_PIN,1);
+  // delay(200);
+  // digitalWrite(BUZZER_PIN,0);
+
+  
+  
+  
 
   // Initialize tubes on the right outside of the screen
   for(int i = 0; i < 4; i++) {
@@ -113,7 +118,7 @@ void setup() {
 }
 
 void loop() {
-  
+
   display.clear();
 
   int btn = digitalRead(BUTTON_PIN_1);
@@ -306,6 +311,10 @@ void loop() {
 
   // Display ending (score) screen
   else{ 
+    if (!isMusicOn){
+      isMusicOn = true;
+      shortMusic();
+    }
     display.setFont(ArialMT_Plain_16);
     display.drawString(0, 0, "Your score: " + String(score));
     display.drawString(0, 20, "High score: " + String(highScore));
@@ -330,6 +339,8 @@ void loop() {
       preferences.begin("Flappy", false);
       preferences.putUInt("highScore", highScore);
       preferences.end();
+
+      isMusicOn = false;
     }
   }
   
