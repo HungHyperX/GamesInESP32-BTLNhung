@@ -1,26 +1,26 @@
-# Flappy Bird on ESP32 Arduino
+# Games in ESP32 Arduino
 
-![Flappy Bird](flappy_bird_image.jpg)
+![Games in ESP32](https://github.com/HungHyperX/GamesInESP32-BTLNhung/assets/131465286/536e97e5-35ec-43c5-ac53-97970961aac3)
+
 
 ## Overview
 
-This project is an implementation of the classic Flappy Bird game on the ESP32 using the Arduino framework. The game is designed to run on a SSD1306 Oled display, providing a fun and interactive experience on the ESP32 platform.
+This project is an implementation of the classic Flappy Bird and Dino Run game on the ESP32 using the Arduino framework. The game is designed to run on a SSD1306 Oled display 1.3 inch, providing a fun and interactive experience on the ESP32 platform.
 
-## Video demo
-
-[YouTube](https://youtu.be/28IEaFuHusE)
 
 ## Features
 
-- **Responsive Controls:** Use button to control the bird's flight.
-- **OLED Display:** Enjoy the game on a OLED display.
+- **Responsive Controls:** Use button to control the bird flying or the dinosaur jumping.
+- **OLED Display:** Play the game on a OLED display.
 - **Score Tracking:** Keep track of your high score, press BOOT on the ESP32 to reset high score.
 
 ## Hardware Requirements
 
 - ESP32 Development Board.
 - SSD1306 Oled display compatible with the ESP32.
-- Button and buzzer.
+- 2 Button
+- Buzzer
+- LED + resistor
 
 ## Dependencies
 
@@ -29,11 +29,7 @@ This project is an implementation of the classic Flappy Bird game on the ESP32 u
 
 ## Installation
 
-1. Clone this repository:
-
-   ```bash
-   git clone https://github.com/nonameex1sts/FlappyBird_ESP32.git
-   ```
+1. Clone this repository.
 
 2. Open the project in the Arduino IDE.
 
@@ -49,18 +45,20 @@ Connect your display, input button and buzzer according to your setup. Modify th
 
 ## Usage
 
-1. Power on your ESP32 with the Flappy Bird sketch uploaded.
+1. Power on your ESP32 with the sketch uploaded.
 
-2. Control the bird's flight using the designated buttons or sensors.
+2. Control the bird flying or the dinosaur running by using the designated buttons or sensors.
 
-3. Try to navigate through the pipes and score as many points as possible.
+3. Try to get through the pipes or the cactuses and score as many points as possible.
 
-4. Compete with friends and colleagues to achieve the highest score!
+4. Compete with friends or colleagues to achieve the highest score!
 
 ## Acknowledgments
 
 1. Original Flappy Bird game by Dong Nguyen.
 
-2. SSD1306 library by ThingPulse.
+2. Original Google's Dinosaur Run game.
 
-3. Preferences library by Volodymyr Shymanskyy.
+3. SSD1306 library by ThingPulse.
+
+4. Preferences library by Volodymyr Shymanskyy.
