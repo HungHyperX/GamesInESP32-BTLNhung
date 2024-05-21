@@ -11,7 +11,10 @@
 #define BUTTON_PIN_2      27
 #define BOOT_BUTTON_PIN   0
 #define BUZZER_PIN        18
+#define SR04_TRIG_PIN     33
+#define SR04_ECHO_PIN     32
 
+// Display
 #define SCREEN_WIDTH      128
 #define SCREEN_HEIGHT     64
 
@@ -66,6 +69,11 @@ int game = 0;
 int melody[] = {NOTE_C4, NOTE_G3, NOTE_G3, NOTE_A3, NOTE_G3, 0, NOTE_B3, NOTE_C4};
 int noteDurations[] = {4, 8, 8, 4, 4, 4, 4, 4};
 
+int prevDistance = 0;
+int distance = 0;
+
+unsigned long currentTime, prevTime = 0;
+
 void flappyBirdGame();
 void dinoRunGame();
 void displayFlappyStartScreen();
@@ -97,6 +105,8 @@ void setup() {
     pinMode(BUTTON_PIN_2, INPUT_PULLUP);
     pinMode(BUTTON_PIN_1, INPUT_PULLUP);
     pinMode(BUZZER_PIN, OUTPUT);
+    pinMode(SR04_TRIG_PIN, OUTPUT);
+    pinMode(SR04_ECHO_PIN, INPUT);
 
     shortMusic();
 
@@ -117,11 +127,14 @@ void setup() {
     }
 
     display.flipScreenVertically();
+
+    Serial.begin(115200);
+    Serial.println("ESP32 đo khoảng cách");
 }
 
 void loop() {
     display.clear();
-
+    currentTime = millis();
     if (digitalRead(BUTTON_PIN_2) == LOW) {
         game = (game + 1) % 2;
         delay(200);
@@ -219,13 +232,28 @@ void playFlappyBird() {
     display.setFont(ArialMT_Plain_10);
     display.drawString(3, 0, String(FlappyScore));
 
+
+    display.drawXbm(birdX, birdY, Flappy_width, Flappy_height, Flappy);
+
+    // Dùng đo siêu âm để điều khiển Flappy Bird
+    if (currentTime - prevTime >= 150){
+        prevDistance = distance;
+        distance = GetDistance();
+        Serial.println(distance);
+        prevTime = currentTime;
+        // if (distance - prevDistance >= 2){
+        //     keyPressTime = millis() + 60;
+        //     isFlyingUp = true;
+        //     isBuzzerOn = true;
+        // }
+    }
+    
     if (digitalRead(BUTTON_PIN_1) == LOW) {
         keyPressTime = millis();
         isFlyingUp = true;
         isBuzzerOn = true;
     }
 
-    display.drawXbm(birdX, birdY, Flappy_width, Flappy_height, Flappy);
     for (int i = 0; i < 4; i++) {
         display.fillRect(tubeX[i], 0, TUBE_WIDTH, bottomTubeHeight[i]);
         display.fillRect(tubeX[i], bottomTubeHeight[i] + PATH_WIDTH, TUBE_WIDTH, SCREEN_HEIGHT - bottomTubeHeight[i] - PATH_WIDTH);
@@ -450,4 +478,35 @@ void resetDinoHighScore() {
     preferences.putUInt("highScore", DinoHighScore);
     preferences.end();
     delay(200);
+}
+
+int GetDistance() {
+  digitalWrite(SR04_TRIG_PIN, LOW);  // Đưa chân Trig xuống mức thấp trong 2uS
+  delayMicroseconds(2);
+  digitalWrite(SR04_TRIG_PIN, HIGH); // Gửi luồng siêu âm kéo dài 10uS
+  delayMicroseconds(10);
+  digitalWrite(SR04_TRIG_PIN, LOW);  // Tắt luồng siêu âm
+  unsigned int microseconds = pulseIn(SR04_ECHO_PIN, HIGH); // Đợi cho tới khi có phản hồi
+  return microseconds / 58;          // Tính toán khoảng cách từ thời gian hành trình
+}
+
+int temp = 0;
+
+void Increase() {
+  temp++;
+}
+
+
+ 
+void measure(void) {
+   // Xử lý mỗi 1.5s
+    prevDistance = distance;
+    
+    distance = GetDistance(); // Lấy khoảng cách vật cản
+
+    if (distance - prevDistance <= 10) Increase();
+ 
+    Serial.println(distance);
+
+    delay(150);
 }
