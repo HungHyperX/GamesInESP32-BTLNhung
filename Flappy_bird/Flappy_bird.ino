@@ -4,7 +4,9 @@
 #include "asset.h"
 #include "pitch.h"
 
-#define MY_LED            5
+#define MY_LED_1          5
+#define MY_LED_2          26
+
 #define BUTTON_PIN_1      23
 #define BUTTON_PIN_2      27
 #define BOOT_BUTTON_PIN   0
@@ -35,7 +37,7 @@ unsigned int FlappyGameState = 0;
 bool isFlyingUp = false;
 bool isBuzzerOn = false;
 bool FlappyHasScored[4];
-bool isMusicOnFlappy = false;
+bool isMusicOn = true;
 
 float birdX = 20.0;
 float birdY = 28.0;
@@ -64,6 +66,21 @@ int game = 0;
 int melody[] = {NOTE_C4, NOTE_G3, NOTE_G3, NOTE_A3, NOTE_G3, 0, NOTE_B3, NOTE_C4};
 int noteDurations[] = {4, 8, 8, 4, 4, 4, 4, 4};
 
+void flappyBirdGame();
+void dinoRunGame();
+void displayFlappyStartScreen();
+void playFlappyBird();
+bool checkFlappyCollision();
+void endFlappyGame();
+void displayFlappyEndScreen();
+void resetFlappyHighScore();
+void displayDinoStartScreen();
+void playDinoRun();
+bool checkDinoCollision();
+void endDinoGame();
+void displayDinoEndScreen();
+void resetDinoHighScore();
+
 void shortMusic() {
     for (int thisNote = 0; thisNote < 8; thisNote++) {
         int noteDuration = 1000 / noteDurations[thisNote];
@@ -75,7 +92,8 @@ void shortMusic() {
 }
 
 void setup() {
-    pinMode(MY_LED, OUTPUT);
+    pinMode(MY_LED_1, OUTPUT);
+    pinMode(MY_LED_2, OUTPUT);
     pinMode(BUTTON_PIN_2, INPUT_PULLUP);
     pinMode(BUTTON_PIN_1, INPUT_PULLUP);
     pinMode(BUZZER_PIN, OUTPUT);
@@ -110,8 +128,12 @@ void loop() {
     } 
 
     if (game == 0) {
+      digitalWrite(MY_LED_1, HIGH);
+      digitalWrite(MY_LED_2, LOW);
       flappyBirdGame();
     } else {
+      digitalWrite(MY_LED_1, LOW);
+      digitalWrite(MY_LED_2, HIGH);
       dinoRunGame();
     }
 
@@ -130,6 +152,7 @@ void flappyBirdGame() {
         playFlappyBird();
     } else {
         displayFlappyEndScreen();
+
         if (digitalRead(BUTTON_PIN_1) == LOW) {
             FlappyGameState = 0;
             delay(200);
@@ -151,6 +174,7 @@ void dinoRunGame() {
         playDinoRun();
     } else {
         displayDinoEndScreen();
+      
         if (digitalRead(BUTTON_PIN_1) == LOW) {
             DinoGameState = 0;
             delay(200);
@@ -258,7 +282,6 @@ void endFlappyGame() {
         preferences.end();
     }
 
-    isMusicOnFlappy = false;
     FlappyGameState = 2;
     delay(50);
 }
