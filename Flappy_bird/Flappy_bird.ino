@@ -24,7 +24,7 @@
 #define OBSTACLE_WIDTH    14
 #define GROUND_HEIGHT     10
 #define JUMP_HEIGHT       20
-#define GRAVITY           0.025
+#define GRAVITY           0.03
 
 // I2C default address is 0x3c
 SH1106 display(0x3c, 21, 22);
@@ -52,7 +52,7 @@ unsigned int DinoGameState = 0;
 bool isJumping = false;
 bool canPush = true;
 bool DinoHasScored[4];
-bool isMusicOnDino = false;
+//bool isMusicOn = false;
 
 float obstacleX[4];
 float dinoX = 20.0;
@@ -297,6 +297,8 @@ void endFlappyGame() {
 }
 
 void displayFlappyEndScreen() {
+    //display.drawXbm(100, 50, Flappy_width, Flappy_height, Flappy);
+    display.drawXbm(70, 0, Building_width, Building_height, Building);
     display.setFont(ArialMT_Plain_10);
     display.drawString(0, 0, "Game over");
     display.drawString(0, 10, "Score:");
@@ -323,7 +325,7 @@ void displayDinoStartScreen() {
     display.setFont(ArialMT_Plain_16);
     display.drawString(0, 4, "Dino Run");
     display.drawXbm(64, 0, Volcano_width, Volcano_height, Volcano);
-    display.drawXbm(dinoX, dinoY, Dino_width, Dino_height, Dino);
+    display.drawXbm(dinoX, 32, Dino_width, Dino_height, Dino);
 
     display.fillRect(0, SCREEN_HEIGHT - 5, SCREEN_WIDTH, 5);
 
@@ -345,6 +347,7 @@ void playDinoRun() {
         jumpSpeed = 0.1;
         isJumping = true;
         canPush = false;
+        isBuzzerOn = true;
     }
 
     display.drawXbm(dinoX, dinoY, Dino_width, Dino_height, Dino);
@@ -369,6 +372,7 @@ void playDinoRun() {
 
     if((keyPressTime + 400) < millis()) {
       isJumping = false;
+      isBuzzerOn = false;
     }
 
     if(isJumping) {
@@ -383,6 +387,8 @@ void playDinoRun() {
       }
     }
 
+    digitalWrite(BUZZER_PIN, isBuzzerOn ? HIGH : LOW);
+
     if (checkDinoCollision()) {
         endDinoGame();
     }
@@ -393,7 +399,7 @@ void playDinoRun() {
 bool checkDinoCollision() {
     for (int i = 0; i < 4; i++) {
         if (obstacleX[i] <= dinoX + Dino_width && dinoX <= obstacleX[i] + OBSTACLE_WIDTH) {
-            if (dinoY + Dino_height >= SCREEN_HEIGHT - OBSTACLE_WIDTH) {
+            if (dinoY + Dino_height >= SCREEN_HEIGHT - 10) {
                 return true;
             }
         }
@@ -427,6 +433,7 @@ void endDinoGame() {
 }
 
 void displayDinoEndScreen() {
+    display.drawXbm(64, 0, Volcano_width, Volcano_height, Volcano);
     display.setFont(ArialMT_Plain_10);
     display.drawString(0, 0, "Game over");
     display.drawString(0, 10, "Score:");
