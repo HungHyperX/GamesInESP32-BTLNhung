@@ -37,7 +37,7 @@ unsigned int FlappyGameState = 0;
 bool isFlyingUp = false;
 bool isBuzzerOn = false;
 bool FlappyHasScored[4];
-bool isMusicOn = true;
+bool isMusicOn = false;
 
 float birdX = 20.0;
 float birdY = 28.0;
@@ -151,6 +151,11 @@ void flappyBirdGame() {
     } else if (FlappyGameState == 1) {
         playFlappyBird();
     } else {
+        if (!isMusicOn){
+          isMusicOn = true;
+          shortMusic();
+        }
+
         displayFlappyEndScreen();
 
         if (digitalRead(BUTTON_PIN_1) == LOW) {
@@ -173,6 +178,10 @@ void dinoRunGame() {
     } else if (DinoGameState == 1) {
         playDinoRun();
     } else {
+        if (!isMusicOn){
+          isMusicOn = true;
+          shortMusic();
+        }
         displayDinoEndScreen();
       
         if (digitalRead(BUTTON_PIN_1) == LOW) {
@@ -282,6 +291,7 @@ void endFlappyGame() {
         preferences.end();
     }
 
+    isMusicOn = false;
     FlappyGameState = 2;
     delay(50);
 }
@@ -411,7 +421,7 @@ void endDinoGame() {
         preferences.end();
     }
 
-    isMusicOnDino = false;
+    isMusicOn = false;
     DinoGameState = 2;
     delay(50);
 }
