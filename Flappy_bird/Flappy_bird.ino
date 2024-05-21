@@ -11,7 +11,10 @@
 #define BUTTON_PIN_2      27
 #define BOOT_BUTTON_PIN   0
 #define BUZZER_PIN        18
+#define SR04_TRIG_PIN     33
+#define SR04_ECHO_PIN     32
 
+// Display
 #define SCREEN_WIDTH      128
 #define SCREEN_HEIGHT     64
 
@@ -24,7 +27,7 @@
 #define OBSTACLE_WIDTH    14
 #define GROUND_HEIGHT     10
 #define JUMP_HEIGHT       20
-#define GRAVITY           0.025
+#define GRAVITY           0.03
 
 // I2C default address is 0x3c
 SH1106 display(0x3c, 21, 22);
@@ -52,7 +55,7 @@ unsigned int DinoGameState = 0;
 bool isJumping = false;
 bool canPush = true;
 bool DinoHasScored[4];
-bool isMusicOnDino = false;
+//bool isMusicOn = false;
 
 float obstacleX[4];
 float dinoX = 20.0;
@@ -65,6 +68,11 @@ int game = 0;
 
 int melody[] = {NOTE_C4, NOTE_G3, NOTE_G3, NOTE_A3, NOTE_G3, 0, NOTE_B3, NOTE_C4};
 int noteDurations[] = {4, 8, 8, 4, 4, 4, 4, 4};
+
+int prevDistance = 0;
+int distance = 0;
+
+unsigned long currentTime, prevTime = 0;
 
 void flappyBirdGame();
 void dinoRunGame();
@@ -97,6 +105,8 @@ void setup() {
     pinMode(BUTTON_PIN_2, INPUT_PULLUP);
     pinMode(BUTTON_PIN_1, INPUT_PULLUP);
     pinMode(BUZZER_PIN, OUTPUT);
+    pinMode(SR04_TRIG_PIN, OUTPUT);
+    pinMode(SR04_ECHO_PIN, INPUT);
 
     shortMusic();
 
@@ -117,11 +127,14 @@ void setup() {
     }
 
     display.flipScreenVertically();
+
+    Serial.begin(115200);
+    Serial.println("ESP32 đo khoảng cách");
 }
 
 void loop() {
     display.clear();
-
+    currentTime = millis();
     if (digitalRead(BUTTON_PIN_2) == LOW) {
         game = (game + 1) % 2;
         delay(200);
@@ -219,13 +232,28 @@ void playFlappyBird() {
     display.setFont(ArialMT_Plain_10);
     display.drawString(3, 0, String(FlappyScore));
 
+
+    display.drawXbm(birdX, birdY, Flappy_width, Flappy_height, Flappy);
+
+    // Dùng đo siêu âm để điều khiển Flappy Bird
+    if (currentTime - prevTime >= 150){
+        prevDistance = distance;
+        distance = GetDistance();
+        Serial.println(distance);
+        prevTime = currentTime;
+        // if (distance - prevDistance >= 2){
+        //     keyPressTime = millis() + 60;
+        //     isFlyingUp = true;
+        //     isBuzzerOn = true;
+        // }
+    }
+    
     if (digitalRead(BUTTON_PIN_1) == LOW) {
         keyPressTime = millis();
         isFlyingUp = true;
         isBuzzerOn = true;
     }
 
-    display.drawXbm(birdX, birdY, Flappy_width, Flappy_height, Flappy);
     for (int i = 0; i < 4; i++) {
         display.fillRect(tubeX[i], 0, TUBE_WIDTH, bottomTubeHeight[i]);
         display.fillRect(tubeX[i], bottomTubeHeight[i] + PATH_WIDTH, TUBE_WIDTH, SCREEN_HEIGHT - bottomTubeHeight[i] - PATH_WIDTH);
@@ -297,6 +325,8 @@ void endFlappyGame() {
 }
 
 void displayFlappyEndScreen() {
+    //display.drawXbm(100, 50, Flappy_width, Flappy_height, Flappy);
+    display.drawXbm(70, 0, Building_width, Building_height, Building);
     display.setFont(ArialMT_Plain_10);
     display.drawString(0, 0, "Game over");
     display.drawString(0, 10, "Score:");
@@ -323,7 +353,7 @@ void displayDinoStartScreen() {
     display.setFont(ArialMT_Plain_16);
     display.drawString(0, 4, "Dino Run");
     display.drawXbm(64, 0, Volcano_width, Volcano_height, Volcano);
-    display.drawXbm(dinoX, dinoY, Dino_width, Dino_height, Dino);
+    display.drawXbm(dinoX, 32, Dino_width, Dino_height, Dino);
 
     display.fillRect(0, SCREEN_HEIGHT - 5, SCREEN_WIDTH, 5);
 
@@ -345,6 +375,7 @@ void playDinoRun() {
         jumpSpeed = 0.1;
         isJumping = true;
         canPush = false;
+        isBuzzerOn = true;
     }
 
     display.drawXbm(dinoX, dinoY, Dino_width, Dino_height, Dino);
@@ -369,6 +400,7 @@ void playDinoRun() {
 
     if((keyPressTime + 400) < millis()) {
       isJumping = false;
+      isBuzzerOn = false;
     }
 
     if(isJumping) {
@@ -383,6 +415,8 @@ void playDinoRun() {
       }
     }
 
+    digitalWrite(BUZZER_PIN, isBuzzerOn ? HIGH : LOW);
+
     if (checkDinoCollision()) {
         endDinoGame();
     }
@@ -393,7 +427,7 @@ void playDinoRun() {
 bool checkDinoCollision() {
     for (int i = 0; i < 4; i++) {
         if (obstacleX[i] <= dinoX + Dino_width && dinoX <= obstacleX[i] + OBSTACLE_WIDTH) {
-            if (dinoY + Dino_height >= SCREEN_HEIGHT - OBSTACLE_WIDTH) {
+            if (dinoY + Dino_height >= SCREEN_HEIGHT - 10) {
                 return true;
             }
         }
@@ -427,6 +461,7 @@ void endDinoGame() {
 }
 
 void displayDinoEndScreen() {
+    display.drawXbm(64, 0, Volcano_width, Volcano_height, Volcano);
     display.setFont(ArialMT_Plain_10);
     display.drawString(0, 0, "Game over");
     display.drawString(0, 10, "Score:");
@@ -443,4 +478,35 @@ void resetDinoHighScore() {
     preferences.putUInt("highScore", DinoHighScore);
     preferences.end();
     delay(200);
+}
+
+int GetDistance() {
+  digitalWrite(SR04_TRIG_PIN, LOW);  // Đưa chân Trig xuống mức thấp trong 2uS
+  delayMicroseconds(2);
+  digitalWrite(SR04_TRIG_PIN, HIGH); // Gửi luồng siêu âm kéo dài 10uS
+  delayMicroseconds(10);
+  digitalWrite(SR04_TRIG_PIN, LOW);  // Tắt luồng siêu âm
+  unsigned int microseconds = pulseIn(SR04_ECHO_PIN, HIGH); // Đợi cho tới khi có phản hồi
+  return microseconds / 58;          // Tính toán khoảng cách từ thời gian hành trình
+}
+
+int temp = 0;
+
+void Increase() {
+  temp++;
+}
+
+
+ 
+void measure(void) {
+   // Xử lý mỗi 1.5s
+    prevDistance = distance;
+    
+    distance = GetDistance(); // Lấy khoảng cách vật cản
+
+    if (distance - prevDistance <= 10) Increase();
+ 
+    Serial.println(distance);
+
+    delay(150);
 }
