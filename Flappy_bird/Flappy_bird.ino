@@ -241,11 +241,17 @@ void playFlappyBird() {
         distance = GetDistance();
         Serial.println(distance);
         prevTime = currentTime;
-        // if (distance - prevDistance >= 2){
+        // if (distance - prevDistance == 3){
         //     keyPressTime = millis() + 60;
         //     isFlyingUp = true;
         //     isBuzzerOn = true;
         // }
+        if (distance >= 8){
+          keyPressTime = millis() + 60;
+          isFlyingUp = true;
+          isBuzzerOn = true;
+        }
+
     }
     
     if (digitalRead(BUTTON_PIN_1) == LOW) {
@@ -490,23 +496,3 @@ int GetDistance() {
   return microseconds / 58;          // Tính toán khoảng cách từ thời gian hành trình
 }
 
-int temp = 0;
-
-void Increase() {
-  temp++;
-}
-
-
- 
-void measure(void) {
-   // Xử lý mỗi 1.5s
-    prevDistance = distance;
-    
-    distance = GetDistance(); // Lấy khoảng cách vật cản
-
-    if (distance - prevDistance <= 10) Increase();
- 
-    Serial.println(distance);
-
-    delay(150);
-}
