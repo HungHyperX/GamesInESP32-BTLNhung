@@ -41,6 +41,7 @@ bool isFlyingUp = false;
 bool isBuzzerOn = false;
 bool FlappyHasScored[4];
 bool isMusicOn = false;
+bool isUsingButton = false;
 
 float birdX = 20.0;
 float birdY = 28.0;
@@ -73,6 +74,8 @@ int prevDistance = 0;
 int distance = 0;
 
 unsigned long currentTime, prevTime = 0;
+unsigned long selectionTime = 0;
+bool waitingForSelection = false;
 
 void flappyBirdGame();
 void dinoRunGame();
@@ -122,7 +125,7 @@ void setup() {
 
     for (int i = 0; i < 4; i++) {
         tubeX[i] = 128 + i * TUBE_DISTANCE;
-        bottomTubeHeight[i] = random(8, 32);
+bottomTubeHeight[i] = random(8, 32);
         obstacleX[i] = 128 + i * 80;
     }
 
@@ -150,7 +153,6 @@ void loop() {
       dinoRunGame();
     }
 
-
     display.display();
 }
 
@@ -159,16 +161,31 @@ void flappyBirdGame() {
         displayFlappyStartScreen();
         if (digitalRead(BUTTON_PIN_1) == LOW) {
             FlappyGameState = 1;
-            delay(50);
+            waitingForSelection = true;
+            selectionTime = millis();
+            delay(500);
         }
     } else if (FlappyGameState == 1) {
-        playFlappyBird();
-    } else {
-        if (!isMusicOn){
-          isMusicOn = true;
-          shortMusic();
-        }
+        if (waitingForSelection) {
+            display.clear();
+            display.setFont(ArialMT_Plain_10);
+            display.drawString(0, 0, "Select control mode");
+            display.drawString(0, 10, "Press for button control");
+            display.drawString(0, 20, "Wait for sensor control");
+            display.display();
 
+            if (digitalRead(BUTTON_PIN_1) == LOW) {
+                isUsingButton = true;
+                waitingForSelection = false;
+                delay(500);
+            } else if ((millis() - selectionTime) >= 3000) {
+                isUsingButton = false;
+                waitingForSelection = false;
+            }
+        } else {
+            playFlappyBird();
+        }
+    } else {
         displayFlappyEndScreen();
 
         if (digitalRead(BUTTON_PIN_1) == LOW) {
@@ -191,10 +208,6 @@ void dinoRunGame() {
     } else if (DinoGameState == 1) {
         playDinoRun();
     } else {
-        if (!isMusicOn){
-          isMusicOn = true;
-          shortMusic();
-        }
         displayDinoEndScreen();
       
         if (digitalRead(BUTTON_PIN_1) == LOW) {
@@ -222,7 +235,7 @@ void displayFlappyStartScreen() {
     display.drawString(0, 44, "Press to start");
 
     for (int i = 0; i < 4; i++) {
-        tubeX[i] = 128 + ((i + 1) * TUBE_DISTANCE);
+tubeX[i] = 128 + ((i + 1) * TUBE_DISTANCE);
         bottomTubeHeight[i] = random(8, 32);
         FlappyHasScored[i] = false;
     }
@@ -232,32 +245,27 @@ void playFlappyBird() {
     display.setFont(ArialMT_Plain_10);
     display.drawString(3, 0, String(FlappyScore));
 
-
     display.drawXbm(birdX, birdY, Flappy_width, Flappy_height, Flappy);
 
-    // Dùng đo siêu âm để điều khiển Flappy Bird
-    if (currentTime - prevTime >= 150){
-        prevDistance = distance;
-        distance = GetDistance();
-        Serial.println(distance);
-        prevTime = currentTime;
-        // if (distance - prevDistance == 3){
-        //     keyPressTime = millis() + 60;
-        //     isFlyingUp = true;
-        //     isBuzzerOn = true;
-        // }
-        if (distance >= 8){
-          keyPressTime = millis() + 60;
-          isFlyingUp = true;
-          isBuzzerOn = true;
+    // Điều khiển Flappy Bird bằng nút hoặc cảm biến khoảng cách
+    if (isUsingButton) {
+        if (digitalRead(BUTTON_PIN_1) == LOW) {
+            keyPressTime = millis();
+            isFlyingUp = true;
+            tone(BUZZER_PIN, NOTE_C4, 100);  // Phát âm thanh khi bấm nút
         }
-
-    }
-    
-    if (digitalRead(BUTTON_PIN_1) == LOW) {
-        keyPressTime = millis();
-        isFlyingUp = true;
-        isBuzzerOn = true;
+    } else {
+        if (currentTime - prevTime >= 150) {
+            prevDistance = distance;
+            distance = GetDistance();
+            Serial.println(distance);
+            prevTime = currentTime;
+            if (distance >= 8) {
+                keyPressTime = millis() + 60;
+                isFlyingUp = true;
+                tone(BUZZER_PIN, NOTE_C4, 100);  // Phát âm thanh khi có cử động
+            }
+        }
     }
 
     for (int i = 0; i < 4; i++) {
@@ -270,6 +278,12 @@ void playFlappyBird() {
         if (tubeX[i] < birdX && !FlappyHasScored[i]) {
             FlappyScore++;
             FlappyHasScored[i] = true;
+            if (FlappyScore > FlappyHighScore) {  // Cập nhật điểm cao mỗi khi đạt điểm mới
+                FlappyHighScore = FlappyScore;
+                preferences.begin("Flappy", false);
+                preferences.putUInt("highScore", FlappyHighScore);
+                preferences.end();
+            }
             if (FlappyScore % 5 == 0) {
                 flappySpeed += 0.01;
             }
@@ -282,10 +296,8 @@ void playFlappyBird() {
     }
 
     if ((keyPressTime + 80) < millis()) isFlyingUp = false;
-    if ((keyPressTime + 10) < millis()) isBuzzerOn = false;
 
     birdY += isFlyingUp ? -0.025 : 0.015;
-    digitalWrite(BUZZER_PIN, isBuzzerOn ? HIGH : LOW);
 
     if (birdY > 63 || birdY < 0 || checkFlappyCollision()) {
         endFlappyGame();
@@ -317,21 +329,12 @@ void endFlappyGame() {
     digitalWrite(BUZZER_PIN, HIGH);
     delay(50);
     digitalWrite(BUZZER_PIN, LOW);
-
-    if (FlappyScore > FlappyHighScore) {
-        FlappyHighScore = FlappyScore;
-        preferences.begin("Flappy", false);
-        preferences.putUInt("highScore", FlappyHighScore);
-        preferences.end();
-    }
-
-    isMusicOn = false;
+isMusicOn = false;
     FlappyGameState = 2;
     delay(50);
 }
 
 void displayFlappyEndScreen() {
-    //display.drawXbm(100, 50, Flappy_width, Flappy_height, Flappy);
     display.drawXbm(70, 0, Building_width, Building_height, Building);
     display.setFont(ArialMT_Plain_10);
     display.drawString(0, 0, "Game over");
@@ -381,7 +384,7 @@ void playDinoRun() {
         jumpSpeed = 0.1;
         isJumping = true;
         canPush = false;
-        isBuzzerOn = true;
+        tone(BUZZER_PIN, NOTE_C4, 100);  // Phát âm thanh khi bấm nút
     }
 
     display.drawXbm(dinoX, dinoY, Dino_width, Dino_height, Dino);
@@ -394,6 +397,12 @@ void playDinoRun() {
         if (obstacleX[i] < dinoX && !DinoHasScored[i]) {
             DinoScore++;
             DinoHasScored[i] = true;
+            if (DinoScore > DinoHighScore) {  // Cập nhật điểm cao mỗi khi đạt điểm mới
+                DinoHighScore = DinoScore;
+                preferences.begin("Dino", false);
+                preferences.putUInt("highScore", DinoHighScore);
+                preferences.end();
+            }
             if (DinoScore % 5 == 0) {
                 dinoSpeed += 0.01;
             }
@@ -406,7 +415,6 @@ void playDinoRun() {
 
     if((keyPressTime + 400) < millis()) {
       isJumping = false;
-      isBuzzerOn = false;
     }
 
     if(isJumping) {
@@ -421,13 +429,10 @@ void playDinoRun() {
       }
     }
 
-    digitalWrite(BUZZER_PIN, isBuzzerOn ? HIGH : LOW);
-
     if (checkDinoCollision()) {
         endDinoGame();
     }
-
-    display.drawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+display.drawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
 bool checkDinoCollision() {
@@ -453,13 +458,6 @@ void endDinoGame() {
     digitalWrite(BUZZER_PIN, HIGH);
     delay(50);
     digitalWrite(BUZZER_PIN, LOW);
-
-    if (DinoScore > DinoHighScore) {
-        DinoHighScore = DinoScore;
-        preferences.begin("Dino", false);
-        preferences.putUInt("highScore", DinoHighScore);
-        preferences.end();
-    }
 
     isMusicOn = false;
     DinoGameState = 2;
@@ -495,4 +493,3 @@ int GetDistance() {
   unsigned int microseconds = pulseIn(SR04_ECHO_PIN, HIGH); // Đợi cho tới khi có phản hồi
   return microseconds / 58;          // Tính toán khoảng cách từ thời gian hành trình
 }
-
