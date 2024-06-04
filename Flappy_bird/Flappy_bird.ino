@@ -197,9 +197,14 @@ void flappyBirdGame() {
             FlappyGameState = 0;
             delay(200);
         }
+        digitalWrite(BUZZER_PIN, isBuzzerOn ? HIGH : LOW);
+        isBuzzerOn = false;
         if (digitalRead(BOOT_BUTTON_PIN) == LOW) {
             resetFlappyHighScore();
+            
         }
+        
+        
     }
 }
 
@@ -223,6 +228,8 @@ void dinoRunGame() {
             DinoGameState = 0;
             delay(200);
         }
+        digitalWrite(BUZZER_PIN, isBuzzerOn ? HIGH : LOW);
+        isBuzzerOn = false;
         if (digitalRead(BOOT_BUTTON_PIN) == LOW) {
             resetDinoHighScore();
         }
@@ -264,12 +271,12 @@ void playFlappyBird() {
             isBuzzerOn = true;
         }
     } else {
-        if (currentTime - prevTime >= 150) {
+        if (currentTime - prevTime >= 120) {
             prevDistance = distance;
             distance = GetDistance();
             Serial.println(distance);
             prevTime = currentTime;
-            if (distance >= 8) {
+            if (distance <= 4) {
                 keyPressTime = millis() + 60;
                 isFlyingUp = true;
                 isBuzzerOn = true;
@@ -358,6 +365,7 @@ void displayFlappyEndScreen() {
 }
 
 void resetFlappyHighScore() {
+    isBuzzerOn = true;
     FlappyHighScore = 0;
     preferences.begin("Flappy", false);
     preferences.putUInt("highScore", FlappyHighScore);
@@ -489,6 +497,7 @@ void displayDinoEndScreen() {
 }
 
 void resetDinoHighScore() {
+    isBuzzerOn = true;
     DinoHighScore = 0;
     preferences.begin("Dino", false);
     preferences.putUInt("highScore", DinoHighScore);
