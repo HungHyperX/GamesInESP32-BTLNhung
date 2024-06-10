@@ -35,11 +35,15 @@ Link video hướng dẫn: <Link>
 ## Danh sách linh kiện
 
 - ESP32 Development Board.
+- PCB Đục Lỗ 7x9cm 2 Lớp (Phíp Thủy Tinh) 
 - Màn hình SSD1306 Oled tương thích với ESP32.
-- 2 Nút bấm
-- Còi
-- 2 Đèn LED và 2 điện trở
-- Cảm biến khoảng cách
+- 2 Nút nhấn bốn chân
+- Còi chíp 5V
+- 2 Đèn LED đơn và 2 điện trở
+- Cảm Biến Siêu Âm SRF04
+- Mạch sạc 5V
+- 1 công tắc gạt 5 chân (nhưng chỉ dùng 3 chân)
+- 1 pin 3.8V
 
 ## Sơ đồ nguyên lý
 
