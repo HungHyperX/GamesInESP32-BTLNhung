@@ -56,6 +56,14 @@ Link video hướng dẫn: <Link>
 - Còi có một chân nối với chân 18 của ESP32, chân còn lại nối đất.
 - Đèn led thứ nhất nối với chân 5, đèn led thứ hai nối với chân 26 của ESP32, chân còn lại nối đất.
 
+![image](https://github.com/HungHyperX/GamesInESP32-BTLNhung/assets/137110849/03d5a613-ba45-4890-9ea4-2948dfb6a1b9)
+
+Sơ đồ mạch sạc pin:
+- 2 chân B- và B+ nối với pin
+- Chân dương nối với chân VIN (5V) của ESP32 Development Board đi qua công tắc, công tắc sử dụng để cấp/dừng cấp nguồn điện cho ESP32
+- Chân âm nối đất  
+
+
 ## Thư viện cài đặt
 - [ThingPulse OLED SSD1306](https://github.com/ThingPulse/esp8266-oled-ssd1306.git): SSD1306 Oled display library for ESP8266 and ESP32.
 - [Preferences](https://github.com/vshymanskyy/Preferences): Library to store the high score in the internal flash filesystem of ESP32.
