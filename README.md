@@ -1,6 +1,7 @@
 # Games in ESP32 Arduino
 
-![Games in ESP32](https://github.com/HungHyperX/GamesInESP32-BTLNhung/assets/131465286/536e97e5-35ec-43c5-ac53-97970961aac3)
+![Games in ESP32]![game](https://github.com/HungHyperX/GamesInESP32-BTLNhung/assets/136741851/aec5e780-e426-4735-95d3-63e418ca2b2e)
+
 
 
 ## Giới thiệu
@@ -30,7 +31,7 @@ Các tính năng chính bao gồm :
 
 8. Cố gắng vượt qua các đường ống hoặc cây xương rồng và ghi càng nhiều điểm càng tốt.
 
-Link video hướng dẫn: <Link>
+Link video hướng dẫn: ![link](https://youtu.be/JgbkK8cggGQ)
 
 ## Danh sách linh kiện
 
