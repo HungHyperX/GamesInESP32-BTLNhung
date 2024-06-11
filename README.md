@@ -31,7 +31,8 @@ Các tính năng chính bao gồm :
 
 8. Cố gắng vượt qua các đường ống hoặc cây xương rồng và ghi càng nhiều điểm càng tốt.
 
-Link video hướng dẫn: ![link](https://youtu.be/JgbkK8cggGQ)
+Link video hướng dẫn: 
+https://www.youtube.com/watch?v=JgbkK8cggGQ&t=2s
 
 ## Danh sách linh kiện
 
