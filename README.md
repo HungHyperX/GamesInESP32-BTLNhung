@@ -1,6 +1,6 @@
 # Games in ESP32 Arduino
 
-![Games in ESP32]![game](https://github.com/HungHyperX/GamesInESP32-BTLNhung/assets/136741851/aec5e780-e426-4735-95d3-63e418ca2b2e)
+![game](https://github.com/HungHyperX/GamesInESP32-BTLNhung/assets/136741851/aec5e780-e426-4735-95d3-63e418ca2b2e)
 
 
 
